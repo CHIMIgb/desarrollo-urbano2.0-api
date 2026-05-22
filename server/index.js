@@ -4,6 +4,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const { errorHandler } = require('./middleware/errorMiddleware');
+const { ipBlockerMiddleware, ddosLimiter, globalLimiter, initRateLimiter } = require('./middleware/rateLimitMiddleware');
 const { sendResponse } = require('./utils/responseHandler');
 
 const app = express();
@@ -16,6 +17,14 @@ if (!apiPrefix.startsWith('/')) {
 app.use(cors());
 app.use(express.json({ limit: process.env.MAX_PAYLOAD_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: process.env.MAX_PAYLOAD_SIZE }));
+
+// Rate Limit y Protección DDoS (orden importante)
+// 1. Verificar si la IP está bloqueada (más rápido, rechaza de inmediato)
+app.use(ipBlockerMiddleware);
+// 2. Detector DDoS: si supera X requests/minuto, bloquea la IP
+app.use(ddosLimiter);
+// 3. Rate limit global: máximo de requests por hora
+app.use(globalLimiter);
 
 app.get(`${apiPrefix}/`, (req, res) => {
   sendResponse(res, 200, { message: 'Hola Mundo - Backend API' });
@@ -40,6 +49,9 @@ app.use(apiPrefix, (req, res) => {
 // Error handler global
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+// Inicializar rate limiter (carga IPs bloqueadas de la BD) y arrancar servidor
+initRateLimiter().then(() => {
+  app.listen(port, () => {
+    console.log(`Servidor escuchando en http://localhost:${port}`);
+  });
 });
