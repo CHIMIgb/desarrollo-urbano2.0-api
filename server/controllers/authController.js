@@ -28,15 +28,29 @@ const login = async (req, res, next) => {
   }
 };
 
-const me = async (req, res, next) => {
+const validate = async (req, res, next) => {
   try {
-    const token = req.headers['authorization'];
+    let token = req.headers['authorization'];
     if (!token) throw new HttpError(401, 'Token no proporcionado');
+    
+    // Si viene con el prefijo Bearer, lo extraemos
+    if (token.startsWith('Bearer ')) {
+      token = token.split(' ')[1];
+    }
+
     const user = await authService.verifyToken(token);
-    sendResponse(res, 200, { user });
+    
+    // Calcular el tiempo restante en segundos
+    const now = Math.floor(Date.now() / 1000);
+    const expiresInSeconds = user.exp - now;
+
+    sendResponse(res, 200, { 
+      payload: user,
+      expiresInSeconds: expiresInSeconds > 0 ? expiresInSeconds : 0
+    });
   } catch (err) {
     next(err);
   }
 };
 
-module.exports = { register, login, me };
+module.exports = { register, login, validate };

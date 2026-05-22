@@ -6,7 +6,7 @@ const { HttpError } = require('../middleware/errorMiddleware');
 const generateToken = (user) => {
   return jwt.sign(
     { id: user.id, username: user.username, full_name: user.full_name },
-    process.env.JWT_SECRET || 'secret',
+    process.env.JWT_SECRET,
     { expiresIn: parseInt(process.env.JWT_EXPIRES_IN)}
   );
 };
@@ -66,7 +66,7 @@ const loginUser = async (username, password) => {
 
 const verifyToken = async (token) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return decoded;
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
