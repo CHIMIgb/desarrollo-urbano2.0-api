@@ -1,5 +1,6 @@
 const authService = require('../services/authService');
 const { HttpError } = require('../middleware/errorMiddleware');
+const { sendResponse } = require('../utils/responseHandler');
 
 const register = async (req, res, next) => {
   try {
@@ -8,7 +9,7 @@ const register = async (req, res, next) => {
       throw new HttpError(400, 'Faltan campos obligatorios');
     }
     const result = await authService.registerUser(req.body);
-    res.status(201).json({ success: true, ...result });
+    sendResponse(res, 201, result);
   } catch (err) {
     next(err);
   }
@@ -21,7 +22,7 @@ const login = async (req, res, next) => {
       throw new HttpError(400, 'Faltan campos obligatorios');
     }
     const result = await authService.loginUser(username, password);
-    res.status(200).json({ success: true, ...result });
+    sendResponse(res, 200, result);
   } catch (err) {
     next(err);
   }
@@ -32,7 +33,7 @@ const me = async (req, res, next) => {
     const token = req.headers['authorization'];
     if (!token) throw new HttpError(401, 'Token no proporcionado');
     const user = await authService.verifyToken(token);
-    res.status(200).json({ success: true, user });
+    sendResponse(res, 200, { user });
   } catch (err) {
     next(err);
   }

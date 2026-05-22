@@ -1,3 +1,5 @@
+const { sendResponse } = require('../utils/responseHandler');
+
 class HttpError extends Error {
   constructor(statusCode, message) {
     super(message);
@@ -7,10 +9,12 @@ class HttpError extends Error {
 
 const errorHandler = (err, req, res, next) => {
   console.error(err);
+  
   if (err instanceof HttpError) {
-    return res.status(err.statusCode).json({ success: false, error: err.message });
+    return sendResponse(res, err.statusCode, null, { message: err.message });
   }
-  res.status(500).json({ success: false, error: err.message || 'Error interno' });
+  
+  return sendResponse(res, 500, null, { message: err.message || 'Error interno' });
 };
 
 module.exports = {

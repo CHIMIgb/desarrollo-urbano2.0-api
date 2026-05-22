@@ -1,5 +1,6 @@
 const projectService = require('../services/projectService');
 const { HttpError } = require('../middleware/errorMiddleware');
+const { sendResponse } = require('../utils/responseHandler');
 
 const save = async (req, res, next) => {
   try {
@@ -8,7 +9,7 @@ const save = async (req, res, next) => {
       throw new HttpError(400, 'features debe ser un array');
     }
     const result = await projectService.saveProject(req.user.id, req.body);
-    res.status(200).json({ success: true, message: 'Proyecto guardado con exito', ...result });
+    sendResponse(res, 200, { message: 'Proyecto guardado con exito', ...result });
   } catch (err) {
     next(err);
   }
@@ -17,7 +18,7 @@ const save = async (req, res, next) => {
 const getAll = async (req, res, next) => {
   try {
     const projects = await projectService.listUserProjects(req.user.id);
-    res.status(200).json({ success: true, projects });
+    sendResponse(res, 200, { projects });
   } catch (err) {
     next(err);
   }
@@ -26,7 +27,7 @@ const getAll = async (req, res, next) => {
 const loadLatest = async (req, res, next) => {
   try {
     const project = await projectService.loadLatestProject(req.user.id);
-    res.status(200).json({ success: true, project });
+    sendResponse(res, 200, { project });
   } catch (err) {
     next(err);
   }
@@ -37,7 +38,7 @@ const getById = async (req, res, next) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) throw new HttpError(400, 'ID invalido');
     const project = await projectService.loadProjectById(id, req.user.id);
-    res.status(200).json({ success: true, project });
+    sendResponse(res, 200, { project });
   } catch (err) {
     next(err);
   }
@@ -48,7 +49,7 @@ const audit = async (req, res, next) => {
     const { action_type, details, projectId } = req.body;
     if (!action_type) throw new HttpError(400, 'action_type es obligatorio');
     await projectService.addAuditLog(req.user.id, projectId, action_type, details);
-    res.status(200).json({ success: true, message: 'Evento de auditoria registrado' });
+    sendResponse(res, 200, { message: 'Evento de auditoria registrado' });
   } catch (err) {
     next(err);
   }
