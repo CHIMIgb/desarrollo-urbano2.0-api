@@ -40,13 +40,17 @@ Cliente HTTP (Frontend SPA)
               │ router.post('/save', controller.save)
               ▼
 ┌─────────────────────────────────────────────────┐
-│  CAPA 2.5 · server/middleware/                  │
+│  CAPA 2.5 · server/middleware/ & utils/         │
 │  Interceptores transversales entre Routes y    │
-│  Controllers.                                   │
+│  Controllers, y utilidades de respuesta.        │
 │  ─ authMiddleware.js: valida JWT, inyecta       │
 │    req.user (id, username, full_name)           │
+│  ─ rateLimitMiddleware.js: protección DDoS y    │
+│    limitación de peticiones por IP              │
 │  ─ errorMiddleware.js: estandariza respuestas   │
 │    de error; clase HttpError para errores HTTP  │
+│  ─ responseHandler.js: envoltorio estándar para │
+│    respuestas exitosas { success, data, error } │
 └─────────────┬───────────────────────────────────┘
               │ next() → controller
               ▼
@@ -150,6 +154,13 @@ Controller / Service lanza error
 | `404`  | projectService | Proyecto no encontrado para ese `userId` |
 | `500`  | errorHandler (catch-all) | Error inesperado de DB u otro runtime error |
 
+### 2.3 Rate Limiting y Prevención DDoS
+
+El sistema cuenta con un sistema robusto de limitación de tráfico (`rateLimitMiddleware.js`) basado en la IP del cliente y apoyado en la tabla `blocked_ips`:
+1. **Global Limiter**: Límite estándar por hora para prevenir abuso general.
+2. **DDoS Limiter**: Ventana corta estricta para mitigar ataques volumétricos.
+3. **IP Blocker**: Interceptor que consulta si la IP del cliente está en la tabla `blocked_ips` y la rechaza inmediatamente si el bloqueo sigue vigente.
+
 ---
 
 ## 3. Inventario Total de Endpoints
@@ -171,7 +182,7 @@ No requieren autenticación previa.
 3. `INSERT INTO users (username, full_name, email, password_hash) RETURNING id, username, full_name, email`.
 4. `jwt.sign(...)` para emitir un token de sesión inmediato.
 
-**Respuesta exitosa:** `201 { success: true, token, user: { id, username, full_name, email } }`
+**Respuesta exitosa:** `201 { success: true, data: { token, user: { id, username, full_name, email } }, error: null }`
 
 ---
 
@@ -185,7 +196,7 @@ No requieren autenticación previa.
 2. `bcrypt.compare(password, user.password_hash)` — lanza `401` si no coincide (mismo mensaje genérico para no revelar qué campo es incorrecto).
 3. `jwt.sign({ id, username, full_name }, JWT_SECRET, { expiresIn: '2h' })`.
 
-**Respuesta exitosa:** `200 { success: true, token, user: { id, username, full_name, email } }`
+**Respuesta exitosa:** `200 { success: true, data: { token, user: { id, username, full_name, email } }, error: null }`
 
 ---
 
@@ -251,7 +262,7 @@ COMMIT;
 -- En caso de error en cualquier paso: ROLLBACK.
 ```
 
-**Respuesta exitosa:** `200 { success: true, message: 'Proyecto guardado con exito', projectId }`
+**Respuesta exitosa:** `200 { success: true, data: { message: 'Proyecto guardado con exito', projectId, snapshotId }, error: null }`
 
 ---
 
@@ -266,7 +277,7 @@ WHERE user_id = $1
 ORDER BY updated_at DESC;
 ```
 
-**Respuesta exitosa:** `200 { success: true, projects: [{ id, name, updated_at, created_at }, ...] }`
+**Respuesta exitosa:** `200 { success: true, data: { projects: [{ id, name, updated_at, created_at }, ...] }, error: null }`
 
 ---
 
@@ -286,7 +297,7 @@ SELECT feature_data FROM project_features WHERE project_id = $1;
 ```
 Si no existe ningún proyecto para el usuario, retorna `project: null`.
 
-**Respuesta exitosa:** `200 { success: true, project: { id, name, nextId, features: [...], mapView: {...} } }`
+**Respuesta exitosa:** `200 { success: true, data: { project: { id, name, nextId, features: [...], mapView: {...} } }, error: null }`
 
 ---
 
@@ -305,7 +316,7 @@ SELECT * FROM projects WHERE id = $1 AND user_id = $2;
 SELECT feature_data FROM project_features WHERE project_id = $1;
 ```
 
-**Respuesta exitosa:** `200 { success: true, project: { id, name, nextId, features: [...], mapView: {...} } }`
+**Respuesta exitosa:** `200 { success: true, data: { project: { id, name, nextId, features: [...], mapView: {...} } }, error: null }`
 
 ---
 
@@ -321,7 +332,7 @@ VALUES ($1, $2, $3, $4::jsonb);
 ```
 `details` es de tipo JSONB libre — puede contener cualquier objeto JSON descriptivo del evento.
 
-**Respuesta exitosa:** `200 { success: true, message: 'Evento de auditoria registrado' }`
+**Respuesta exitosa:** `200 { success: true, data: { message: 'Evento de auditoria registrado' }, error: null }`
 
 ---
 
@@ -335,7 +346,7 @@ VALUES ($1, $2, $3, $4::jsonb);
 - `OSM_NOMINATIM_URL`: URL del servicio de geocodificación.
 - `OSM_OVERPASS_ENDPOINTS`: Array de endpoints para importar datos OSM reales.
 
-**Respuesta:** `200 { OSM_TILE_URL, OSM_NOMINATIM_URL, OSM_OVERPASS_ENDPOINTS: [...] }`
+**Respuesta:** `200 { success: true, data: { OSM_TILE_URL, OSM_NOMINATIM_URL, OSM_OVERPASS_ENDPOINTS: [...] }, error: null }`
 
 ---
 
@@ -501,9 +512,13 @@ Al cargar un proyecto (`GET /load` o `GET /:id`), el servidor reconstruye y reto
 | Variable | Descripción | Ejemplo |
 |---|---|---|
 | `PORT` | Puerto del servidor Express | `3000` |
+| `API_PREFIX` | Prefijo global para las rutas de la API | `/api` |
 | `DATABASE_URL` | Connection string completa de PostgreSQL | `postgres://user:pass@host:5432/db` |
 | `JWT_SECRET` | Clave secreta para firma HMAC-SHA256 del JWT | `una-cadena-aleatoria-larga` |
 | `MAX_PAYLOAD_SIZE` | Límite del body JSON (features pueden ser pesadas) | `100mb` |
+| `RATE_LIMIT_MAX_PER_HOUR` | Límite global de peticiones por hora por IP | `1000` |
+| `DDOS_MAX_REQUESTS_PER_MINUTE` | Límite de ráfagas para el limitador DDoS | `100` |
+| `DDOS_BLOCK_DURATION_MINUTES` | Duración del castigo si se detecta abuso | `15` |
 | `OSM_TILE_URL` | URL de tiles del mapa base | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` |
 | `OSM_NOMINATIM_URL` | URL del geocodificador | `https://nominatim.openstreetmap.org/search` |
 | `OSM_OVERPASS_ENDPOINTS` | Lista de endpoints Overpass separados por coma | `https://overpass-api.de/api/interpreter` |
