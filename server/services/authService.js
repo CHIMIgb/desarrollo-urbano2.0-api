@@ -15,7 +15,7 @@ const generateToken = (user) => {
 const registerUser = async (userData) => {
   const { username, full_name, email, password } = userData;
 
-  // Verify uniqueness
+  // Verificar unicidad
   const existingUser = await db.query(
     'SELECT id FROM users WHERE username = $1 OR email = $2',
     [username, email]
@@ -24,25 +24,25 @@ const registerUser = async (userData) => {
     throw new ConflictError(MESSAGES.AUTH.USER_EXISTS);
   }
 
-  // Hash password
+  // Hashear contraseña
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  // Insert user
+  // Insertar usuario
   const result = await db.query(
     'INSERT INTO users (username, full_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, username, full_name, email',
     [username, full_name, email, passwordHash]
   );
   const newUser = result.rows[0];
 
-  // Generate token
+  // Generar token
   const token = generateToken(newUser);
 
   return { token, user: newUser };
 };
 
 const loginUser = async (username, password) => {
-  // Find user
+  // Buscar usuario
   const result = await db.query('SELECT id, username, full_name, email, password_hash FROM users WHERE username = $1', [username]);
   const user = result.rows[0];
 
@@ -50,16 +50,16 @@ const loginUser = async (username, password) => {
     throw new AuthenticationError(MESSAGES.AUTH.BAD_CREDENTIALS);
   }
 
-  // Compare password
+  // Comparar contraseña
   const isMatch = await bcrypt.compare(password, user.password_hash);
   if (!isMatch) {
     throw new AuthenticationError(MESSAGES.AUTH.BAD_CREDENTIALS);
   }
 
-  // Generate token
+  // Generar token
   const token = generateToken(user);
   
-  // Clean up user object to not return hash
+  // Limpiar el objeto de usuario para no retornar el hash
   delete user.password_hash;
 
   return { token, user };

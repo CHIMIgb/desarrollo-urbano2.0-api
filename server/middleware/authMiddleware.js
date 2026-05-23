@@ -12,7 +12,7 @@ const authenticateToken = async (req, res, next) => {
       token = token.split(' ')[1];
     }
 
-    // Check if the token is in the blacklist
+    // Verificar si el token está en la lista negra
     const isInvalid = await authService.isTokenInvalidated(token);
     if (isInvalid) {
       return next(new HttpError(403, MESSAGES.AUTH.REVOKED_TOKEN));

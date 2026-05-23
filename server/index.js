@@ -42,12 +42,12 @@ app.get(`${apiPrefix}/config`, (req, res) => {
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/projects`, projectRoutes);
 
-// Catch-all 404
+// Manejo de rutas no encontradas (404)
 app.use(apiPrefix, (req, res) => {
   sendResponse(res, 404, null, { message: MESSAGES.COMMON.NOT_FOUND });
 });
 
-// Error handler global
+// Manejador de errores global
 app.use(errorHandler);
 
 // Inicializar rate limiter (carga IPs bloqueadas de la BD) y arrancar servidor
