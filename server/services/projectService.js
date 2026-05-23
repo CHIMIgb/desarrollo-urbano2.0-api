@@ -70,6 +70,29 @@ const saveProject = async (userId, projectData) => {
         ]
       );
       snapshotId = metricsRes.rows[0].id;
+
+      // PASO 4: Guardar métricas por lote (si metrics.lots existe)
+      if (Array.isArray(metrics.lots)) {
+        for (const lot of metrics.lots) {
+          await client.query(
+            `INSERT INTO project_lot_metrics_snapshots 
+              (snapshot_id, lot_id, name, base_area, occupied_area, built_area, 
+               green_area, cos, cus) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              snapshotId,
+              lot.lot_id,
+              lot.name || null,
+              lot.base_area || 0,
+              lot.occupied_area || 0,
+              lot.built_area || 0,
+              lot.green_area || 0,
+              lot.cos || 0,
+              lot.cus || 0
+            ]
+          );
+        }
+      }
     }
 
     await client.query('COMMIT');
