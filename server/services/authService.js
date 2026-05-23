@@ -76,4 +76,22 @@ const verifyToken = async (token) => {
   }
 };
 
-module.exports = { registerUser, loginUser, verifyToken };
+const invalidateToken = async (token) => {
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
+    const result = await client.query(
+      'INSERT INTO invalidated_tokens (token) VALUES ($1) ON CONFLICT (token) DO NOTHING',
+      [token]
+    );
+    await client.query('COMMIT');
+    return result.rowCount > 0;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { registerUser, loginUser, verifyToken, invalidateToken };

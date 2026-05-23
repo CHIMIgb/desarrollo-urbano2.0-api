@@ -53,4 +53,31 @@ const validate = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, validate };
+const logout = async (req, res, next) => {
+  try {
+    let token = req.headers['authorization'];
+    if (!token) {
+      throw new HttpError(400, 'Token no proporcionado');
+    }
+
+    if (token.startsWith('Bearer ')) {
+      token = token.split(' ')[1];
+    }
+    
+    if (!token) {
+      throw new HttpError(400, 'Token vacio');
+    }
+
+    const wasInserted = await authService.invalidateToken(token);
+    
+    if (!wasInserted) {
+      throw new HttpError(400, 'El token ya estaba invalidado o ha expirado');
+    }
+
+    sendResponse(res, 200, { message: 'Sesión cerrada correctamente' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, validate, logout };

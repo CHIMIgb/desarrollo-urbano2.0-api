@@ -47,3 +47,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- Usuario de prueba (contraseña: 'admin123' - el hash deberá ser generado por bcrypt en el backend)
 -- Por ahora insertamos uno manual para pruebas iniciales si es necesario, 
 -- pero lo ideal es usar el endpoint de registro o un script de seed.
+
+CREATE TABLE IF NOT EXISTS invalidated_tokens (
+  id SERIAL PRIMARY KEY,
+  token TEXT NOT NULL UNIQUE,
+  invalidated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
