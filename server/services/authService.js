@@ -94,4 +94,9 @@ const invalidateToken = async (token) => {
   }
 };
 
-module.exports = { registerUser, loginUser, verifyToken, invalidateToken };
+const isTokenInvalidated = async (token) => {
+  const result = await db.query('SELECT id FROM invalidated_tokens WHERE token = $1', [token]);
+  return result.rows.length > 0;
+};
+
+module.exports = { registerUser, loginUser, verifyToken, invalidateToken, isTokenInvalidated };

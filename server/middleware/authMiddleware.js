@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { HttpError } = require('./errorMiddleware');
-const db = require('../db');
+const authService = require('../services/authService');
 
 const authenticateToken = async (req, res, next) => {
   try {
@@ -12,8 +12,8 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Check if the token is in the blacklist
-    const invalidCheck = await db.query('SELECT id FROM invalidated_tokens WHERE token = $1', [token]);
-    if (invalidCheck.rows.length > 0) {
+    const isInvalid = await authService.isTokenInvalidated(token);
+    if (isInvalid) {
       return next(new HttpError(403, 'Sesión terminada (token revocado)'));
     }
 

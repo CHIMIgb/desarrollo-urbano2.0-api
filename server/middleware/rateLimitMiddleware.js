@@ -1,5 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const db = require('../db');
+const securityService = require('../services/securityService');
 const { sendResponse } = require('../utils/responseHandler');
 
 // ============================================================
@@ -13,13 +13,10 @@ const blockedIpsCache = new Map(); // key: ip, value: { expiresAt: Date }
  */
 const syncBlockedIps = async () => {
   try {
-    const result = await db.query(
-      `SELECT ip_address, expires_at FROM blocked_ips
-       WHERE is_active = TRUE AND expires_at > NOW()`
-    );
+    const activeIps = await securityService.getActiveBlockedIps();
     // Limpiar el cache y reconstruirlo desde la BD
     blockedIpsCache.clear();
-    for (const row of result.rows) {
+    for (const row of activeIps) {
       blockedIpsCache.set(row.ip_address, { expiresAt: new Date(row.expires_at) });
     }
   } catch (err) {
@@ -35,11 +32,7 @@ const blockIp = async (ip, reason, requestCount) => {
   const expiresAt = new Date(Date.now() + blockMinutes * 60 * 1000);
 
   try {
-    await db.query(
-      `INSERT INTO blocked_ips (ip_address, reason, request_count, blocked_at, expires_at, is_active)
-       VALUES ($1, $2, $3, NOW(), $4, TRUE)`,
-      [ip, reason, requestCount, expiresAt]
-    );
+    await securityService.insertBlockedIp(ip, reason, requestCount, expiresAt);
     blockedIpsCache.set(ip, { expiresAt });
     console.warn(`[RateLimit] IP bloqueada: ${ip} | Razón: ${reason} | Expira: ${expiresAt.toISOString()}`);
   } catch (err) {
