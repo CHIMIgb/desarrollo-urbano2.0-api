@@ -117,8 +117,19 @@ const loadLatestProject = async (userId) => {
   
   const project = res.rows[0];
   const featuresRes = await db.query('SELECT feature_data FROM project_features WHERE project_id = $1', [project.id]);
-  project.features = featuresRes.rows.map(row => row.feature_data);
-  return project;
+  
+  return {
+    id: project.id,
+    name: project.name,
+    nextId: project.next_id,
+    mapView: {
+      center: [project.map_center_lng, project.map_center_lat],
+      zoom: project.map_zoom,
+      pitch: project.map_pitch,
+      bearing: project.map_bearing
+    },
+    features: featuresRes.rows.map(row => row.feature_data)
+  };
 };
 
 const loadProjectById = async (projectId, userId) => {
@@ -129,8 +140,19 @@ const loadProjectById = async (projectId, userId) => {
   
   const project = res.rows[0];
   const featuresRes = await db.query('SELECT feature_data FROM project_features WHERE project_id = $1', [project.id]);
-  project.features = featuresRes.rows.map(row => row.feature_data);
-  return project;
+  
+  return {
+    id: project.id,
+    name: project.name,
+    nextId: project.next_id,
+    mapView: {
+      center: [project.map_center_lng, project.map_center_lat],
+      zoom: project.map_zoom,
+      pitch: project.map_pitch,
+      bearing: project.map_bearing
+    },
+    features: featuresRes.rows.map(row => row.feature_data)
+  };
 };
 
 const addAuditLog = async (userId, projectId, actionType, details) => {
