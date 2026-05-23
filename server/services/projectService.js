@@ -2,23 +2,94 @@ const db = require('../db');
 const { HttpError } = require('../middleware/errorMiddleware');
 
 const saveProject = async (userId, projectData) => {
-  return { projectId: 1 }; // Skeleton implementation
+  const { 
+    projectId, 
+    name = 'Proyecto Sin Nombre', 
+    features = [], 
+    map_center_lng = -99.1332, 
+    map_center_lat = 19.4326, 
+    map_zoom = 13, 
+    map_pitch = 65, 
+    map_bearing = -20 
+  } = projectData;
+
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
+    
+    let currentProjectId = projectId;
+
+    if (currentProjectId) {
+      const checkRes = await client.query('SELECT id FROM projects WHERE id = $1 AND user_id = $2', [currentProjectId, userId]);
+      if (checkRes.rows.length === 0) {
+        throw new HttpError(403, 'No tienes permiso para modificar este proyecto o no existe');
+      }
+
+      await client.query(`
+        UPDATE projects 
+        SET name = $1, map_center_lng = $2, map_center_lat = $3, map_zoom = $4, map_pitch = $5, map_bearing = $6, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $7
+      `, [name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing, currentProjectId]);
+
+      await client.query('DELETE FROM project_features WHERE project_id = $1', [currentProjectId]);
+    } else {
+      const insertRes = await client.query(`
+        INSERT INTO projects (user_id, name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+      `, [userId, name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing]);
+      currentProjectId = insertRes.rows[0].id;
+    }
+
+    for (const feature of features) {
+      await client.query(
+        'INSERT INTO project_features (project_id, feature_data) VALUES ($1, $2)',
+        [currentProjectId, JSON.stringify(feature)]
+      );
+    }
+
+    await client.query('COMMIT');
+    return { projectId: currentProjectId };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 };
 
 const listUserProjects = async (userId) => {
-  return []; // Skeleton implementation
+  const res = await db.query('SELECT * FROM projects WHERE user_id = $1 ORDER BY updated_at DESC', [userId]);
+  return res.rows;
 };
 
 const loadLatestProject = async (userId) => {
-  return null; // Skeleton implementation
+  const res = await db.query('SELECT * FROM projects WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1', [userId]);
+  if (res.rows.length === 0) return null;
+  
+  const project = res.rows[0];
+  const featuresRes = await db.query('SELECT feature_data FROM project_features WHERE project_id = $1', [project.id]);
+  project.features = featuresRes.rows.map(row => row.feature_data);
+  return project;
 };
 
 const loadProjectById = async (projectId, userId) => {
-  return { id: projectId }; // Skeleton implementation
+  const res = await db.query('SELECT * FROM projects WHERE id = $1 AND user_id = $2', [projectId, userId]);
+  if (res.rows.length === 0) {
+    throw new HttpError(404, 'Proyecto no encontrado o sin acceso');
+  }
+  
+  const project = res.rows[0];
+  const featuresRes = await db.query('SELECT feature_data FROM project_features WHERE project_id = $1', [project.id]);
+  project.features = featuresRes.rows.map(row => row.feature_data);
+  return project;
 };
 
 const addAuditLog = async (userId, projectId, actionType, details) => {
-  return true; // Skeleton implementation
+  await db.query(
+    'INSERT INTO audit_logs (user_id, project_id, action_type, details) VALUES ($1, $2, $3, $4)',
+    [userId, projectId, actionType, details ? JSON.stringify(details) : null]
+  );
+  return true;
 };
 
 module.exports = {
