@@ -1,4 +1,5 @@
 const { sendResponse } = require('../utils/responseHandler');
+const { MESSAGES } = require('../utils/constants');
 
 class HttpError extends Error {
   constructor(statusCode, message) {
@@ -14,7 +15,7 @@ const errorHandler = (err, req, res, next) => {
     return sendResponse(res, err.statusCode, null, { message: err.message });
   }
   
-  return sendResponse(res, 500, null, { message: err.message || 'Error interno' });
+  return sendResponse(res, 500, null, { message: err.message.MESSAGES.COMMON.SERVER_ERROR });
 };
 
 module.exports = {

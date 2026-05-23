@@ -1,5 +1,6 @@
 const db = require('../db');
 const { HttpError } = require('../middleware/errorMiddleware');
+const { MESSAGES } = require('../utils/constants');
 
 const saveProject = async (userId, projectData) => {
   const { 
@@ -135,7 +136,7 @@ const loadLatestProject = async (userId) => {
 const loadProjectById = async (projectId, userId) => {
   const res = await db.query('SELECT * FROM projects WHERE id = $1 AND user_id = $2', [projectId, userId]);
   if (res.rows.length === 0) {
-    throw new HttpError(404, 'Proyecto no encontrado o sin acceso');
+    throw new HttpError(404, MESSAGES.PROJECTS.NOT_FOUND);
   }
   
   const project = res.rows[0];

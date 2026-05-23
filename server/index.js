@@ -6,6 +6,7 @@ const projectRoutes = require('./routes/projects');
 const { errorHandler } = require('./middleware/errorMiddleware');
 const { ipBlockerMiddleware, ddosLimiter, globalLimiter, initRateLimiter } = require('./middleware/rateLimitMiddleware');
 const { sendResponse } = require('./utils/responseHandler');
+const { MESSAGES } = require('./utils/constants');
 
 const app = express();
 const port = process.env.PORT;
@@ -43,7 +44,7 @@ app.use(`${apiPrefix}/projects`, projectRoutes);
 
 // Catch-all 404
 app.use(apiPrefix, (req, res) => {
-  sendResponse(res, 404, null, { message: 'Endpoint no encontrado' });
+  sendResponse(res, 404, null, { message: MESSAGES.COMMON.NOT_FOUND });
 });
 
 // Error handler global

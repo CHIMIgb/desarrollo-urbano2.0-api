@@ -1,15 +1,16 @@
 const projectService = require('../services/projectService');
 const { HttpError } = require('../middleware/errorMiddleware');
 const { sendResponse } = require('../utils/responseHandler');
+const { MESSAGES } = require('../utils/constants');
 
 const save = async (req, res, next) => {
   try {
     const { features } = req.body;
     if (!Array.isArray(features)) {
-      throw new HttpError(400, 'features debe ser un array');
+      throw new HttpError(400, MESSAGES.PROJECTS.INVALID_FEATURES);
     }
     const result = await projectService.saveProject(req.user.id, req.body);
-    sendResponse(res, 200, { message: 'Proyecto guardado con exito', ...result });
+    sendResponse(res, 200, { message: MESSAGES.PROJECTS.SAVE_SUCCESS, ...result });
   } catch (err) {
     next(err);
   }
@@ -36,7 +37,7 @@ const loadLatest = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) throw new HttpError(400, 'ID invalido');
+    if (isNaN(id)) throw new HttpError(400, MESSAGES.PROJECTS.INVALID_ID);
     const project = await projectService.loadProjectById(id, req.user.id);
     sendResponse(res, 200, { project });
   } catch (err) {
@@ -47,9 +48,9 @@ const getById = async (req, res, next) => {
 const audit = async (req, res, next) => {
   try {
     const { action_type, details, projectId } = req.body;
-    if (!action_type) throw new HttpError(400, 'action_type es obligatorio');
+    if (!action_type) throw new HttpError(400, MESSAGES.PROJECTS.MISSING_ACTION_TYPE);
     await projectService.addAuditLog(req.user.id, projectId, action_type, details);
-    sendResponse(res, 200, { message: 'Evento de auditoria registrado' });
+    sendResponse(res, 200, { message: MESSAGES.PROJECTS.AUDIT_SUCCESS });
   } catch (err) {
     next(err);
   }

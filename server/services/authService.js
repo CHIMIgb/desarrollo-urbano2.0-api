@@ -2,6 +2,7 @@ const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { HttpError } = require('../middleware/errorMiddleware');
+const { MESSAGES } = require('../utils/constants');
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -20,7 +21,7 @@ const registerUser = async (userData) => {
     [username, email]
   );
   if (existingUser.rows.length > 0) {
-    throw new HttpError(400, 'El nombre de usuario o email ya esta en uso');
+    throw new HttpError(400, MESSAGES.AUTH.USER_EXISTS);
   }
 
   // Hash password
@@ -46,13 +47,13 @@ const loginUser = async (username, password) => {
   const user = result.rows[0];
 
   if (!user) {
-    throw new HttpError(401, 'Credenciales incorrectas');
+    throw new HttpError(401, MESSAGES.AUTH.BAD_CREDENTIALS);
   }
 
   // Compare password
   const isMatch = await bcrypt.compare(password, user.password_hash);
   if (!isMatch) {
-    throw new HttpError(401, 'Credenciales incorrectas');
+    throw new HttpError(401, MESSAGES.AUTH.BAD_CREDENTIALS);
   }
 
   // Generate token
@@ -70,9 +71,9 @@ const verifyToken = async (token) => {
     return decoded;
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      throw new HttpError(401, 'El token ha expirado');
+      throw new HttpError(401, MESSAGES.AUTH.EXPIRED_TOKEN);
     }
-    throw new HttpError(403, 'Token invalido');
+    throw new HttpError(403, MESSAGES.AUTH.INVALID_TOKEN);
   }
 };
 
