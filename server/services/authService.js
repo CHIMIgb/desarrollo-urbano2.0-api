@@ -42,7 +42,7 @@ const registerUser = async (userData) => {
 
 const loginUser = async (username, password) => {
   // Find user
-  const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+  const result = await db.query('SELECT id, username, full_name, email, password_hash FROM users WHERE username = $1', [username]);
   const user = result.rows[0];
 
   if (!user) {

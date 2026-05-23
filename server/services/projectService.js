@@ -6,6 +6,7 @@ const saveProject = async (userId, projectData) => {
     projectId, 
     name = 'Proyecto Sin Nombre', 
     features = [], 
+    metrics,
     map_center_lng = -99.1332, 
     map_center_lat = 19.4326, 
     map_zoom = 13, 
@@ -47,8 +48,32 @@ const saveProject = async (userId, projectData) => {
       );
     }
 
+    // PASO 3: Guardar snapshot de métricas urbanas (si metrics.global existe)
+    let snapshotId = null;
+    if (metrics && metrics.global) {
+      const g = metrics.global;
+      const metricsRes = await client.query(
+        `INSERT INTO project_metrics_snapshots 
+          (project_id, total_base_area, total_occupied_area, total_built_area, 
+           total_green_area, cos, cus, estimated_population) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+         RETURNING id`,
+        [
+          currentProjectId,
+          g.total_base_area || 0,
+          g.total_occupied_area || 0,
+          g.total_built_area || 0,
+          g.total_green_area || 0,
+          g.cos || 0,
+          g.cus || 0,
+          g.estimated_population || 0
+        ]
+      );
+      snapshotId = metricsRes.rows[0].id;
+    }
+
     await client.query('COMMIT');
-    return { projectId: currentProjectId };
+    return { projectId: currentProjectId, snapshotId };
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
