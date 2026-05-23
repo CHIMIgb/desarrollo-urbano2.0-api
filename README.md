@@ -60,7 +60,7 @@ El proyecto sigue una arquitectura estricta en capas para una clara separación 
 ### Autenticación (`/api/auth`)
 - `POST /register`: Crea una cuenta nueva.
 - `POST /login`: Inicia sesión y obtiene un JWT.
-- `GET /me`: Verifica la validez del token actual.
+- `GET /validate`: Verifica la validez del token actual.
 
 ### Proyectos (`/api/projects` - Requieren Autenticación)
 - `POST /save`: Guarda o actualiza el estado completo de un proyecto urbano en la BD (features 3D, cámara, métricas) mediante una transacción SQL.

@@ -189,7 +189,7 @@ No requieren autenticación previa.
 
 ---
 
-#### `GET /api/auth/me`
+#### `GET /api/auth/validate`
 **Descripción:** Verifica la validez de un token y devuelve el payload decodificado. Utilizado por el frontend al recargar la página para restaurar la sesión del usuario sin necesidad de un nuevo login.
 
 **Proceso en `authService.verifyToken`:**
