@@ -7,6 +7,7 @@ const saveProject = async (userId, projectData) => {
     name = 'Proyecto Sin Nombre', 
     features = [], 
     metrics,
+    nextId = 1,
     map_center_lng = -99.1332, 
     map_center_lat = 19.4326, 
     map_zoom = 13, 
@@ -28,16 +29,16 @@ const saveProject = async (userId, projectData) => {
 
       await client.query(`
         UPDATE projects 
-        SET name = $1, map_center_lng = $2, map_center_lat = $3, map_zoom = $4, map_pitch = $5, map_bearing = $6, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $7
-      `, [name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing, currentProjectId]);
+        SET name = $1, map_center_lng = $2, map_center_lat = $3, map_zoom = $4, map_pitch = $5, map_bearing = $6, next_id = $7, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $8
+      `, [name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing, nextId, currentProjectId]);
 
       await client.query('DELETE FROM project_features WHERE project_id = $1', [currentProjectId]);
     } else {
       const insertRes = await client.query(`
-        INSERT INTO projects (user_id, name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
-      `, [userId, name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing]);
+        INSERT INTO projects (user_id, name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing, next_id) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+      `, [userId, name, map_center_lng, map_center_lat, map_zoom, map_pitch, map_bearing, nextId]);
       currentProjectId = insertRes.rows[0].id;
     }
 
