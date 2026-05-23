@@ -107,7 +107,7 @@ const saveProject = async (userId, projectData) => {
 };
 
 const listUserProjects = async (userId) => {
-  const res = await db.query('SELECT * FROM projects WHERE user_id = $1 ORDER BY updated_at DESC', [userId]);
+  const res = await db.query('SELECT id, name, updated_at, created_at FROM projects WHERE user_id = $1 ORDER BY updated_at DESC', [userId]);
   return res.rows;
 };
 

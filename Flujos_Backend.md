@@ -195,7 +195,7 @@ No requieren autenticación previa.
 **Proceso en `authService.verifyToken`:**
 1. `jwt.verify(token, JWT_SECRET)` — lanza `401` si el token es inválido o ha expirado.
 
-**Respuesta exitosa:** `200 { success: true, user: { id, username, full_name, iat, exp } }`
+**Respuesta exitosa:** `200 { success: true, data: { payload: { id, username, full_name, iat, exp }, expiresInSeconds: 7199 }, error: null }`
 
 ---
 
