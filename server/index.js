@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
+const configRoutes = require('./routes/config');
 const { errorHandler } = require('./middleware/errorMiddleware');
 const { ipBlockerMiddleware, ddosLimiter, globalLimiter, initRateLimiter } = require('./middleware/rateLimitMiddleware');
 const { sendResponse } = require('./utils/responseHandler');
@@ -31,16 +32,9 @@ app.get(`${apiPrefix}/`, (req, res) => {
   sendResponse(res, 200, { message: 'Hola Mundo - Backend API' });
 });
 
-app.get(`${apiPrefix}/config`, (req, res) => {
-  sendResponse(res, 200, {
-    OSM_TILE_URL: process.env.OSM_TILE_URL,
-    OSM_NOMINATIM_URL: process.env.OSM_NOMINATIM_URL,
-    OSM_OVERPASS_ENDPOINTS: process.env.OSM_OVERPASS_ENDPOINTS ? process.env.OSM_OVERPASS_ENDPOINTS.split(',') : []
-  });
-});
-
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/projects`, projectRoutes);
+app.use(`${apiPrefix}/config`, configRoutes);
 
 // Manejo de rutas no encontradas (404)
 app.use(apiPrefix, (req, res) => {

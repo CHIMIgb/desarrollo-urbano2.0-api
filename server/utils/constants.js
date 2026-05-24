@@ -23,6 +23,9 @@ const MESSAGES = {
     MISSING_FIELDS: 'Faltan campos obligatorios',
     SERVER_ERROR: 'Error interno',
     NOT_FOUND: 'Endpoint no encontrado'
+  },
+  CONFIG: {
+    FETCH_SUCCESS: 'Configuración cargada con éxito'
   }
 };
 
