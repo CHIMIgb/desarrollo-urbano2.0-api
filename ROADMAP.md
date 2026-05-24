@@ -23,9 +23,16 @@ Actualmente, la validación del comportamiento de la API es manual. Un proyecto 
 
 **Implementación a futuro:**
 Implementar pruebas unitarias y de integración utilizando **Jest** y **Supertest**.
-- **Objetivo:** Crear scripts que simulen peticiones HTTP contra la API de forma automatizada (ej. `it('debería retornar 401 si el token es inválido')`). Esto garantiza que los nuevos cambios o refactorizaciones no rompan funcionalidades existentes (Regression Testing) y permite implementar CI/CD con confianza.
+- **Objetivo:** Crear scripts que simulen peticiones HTTP contra la API de forma automatizada (ej. `it('debería retornar 401 si el token es inválido')`). Esto garantiza que los nuevos cambios o refactorizaciones no rompan funcionalidades existentes (Regression Testing).
 
-## 4. Validación de Entorno (Fail Fast)
+## 4. Integración y Despliegue Continuo (CI/CD)
+En la actualidad los despliegues y pruebas dependen de la disciplina del desarrollador.
+
+**Implementación a futuro:**
+Configurar flujos de trabajo (workflows) automatizados usando **GitHub Actions**, **GitLab CI** o **Jenkins**.
+- **Objetivo:** Cada vez que se haga un `git commit` o se abra un Pull Request (PR), los servidores de CI/CD deben levantar temporalmente una base de datos PostgreSQL, instalar dependencias y ejecutar toda la suite de tests automatizados (los creados en el punto 3). Si un solo test falla, el PR se bloquea automáticamente y no se puede fusionar con la rama principal (main), garantizando que nunca llegue código roto a producción.
+
+## 5. Validación de Entorno (Fail Fast)
 Actualmente, la API asume que las variables de entorno críticas existen y son correctas.
 
 **Implementación a futuro:**
