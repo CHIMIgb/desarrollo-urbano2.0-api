@@ -1,5 +1,6 @@
 const db = require('../db');
 const { NotFoundError } = require('../utils/errors');
+const { HttpError } = require('../middleware/errorMiddleware');
 const { MESSAGES } = require('../utils/constants');
 
 const saveProject = async (userId, projectData) => {
@@ -25,7 +26,7 @@ const saveProject = async (userId, projectData) => {
     if (currentProjectId) {
       const checkRes = await client.query('SELECT id FROM projects WHERE id = $1 AND user_id = $2', [currentProjectId, userId]);
       if (checkRes.rows.length === 0) {
-        throw new HttpError(403, 'No tienes permiso para modificar este proyecto o no existe');
+        throw new HttpError(403, MESSAGES.PROJECTS.NO_PERMISSION);
       }
 
       await client.query(`

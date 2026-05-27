@@ -21,7 +21,8 @@ const errorHandler = (err, req, res, next) => {
   
   // 1. Errores explícitos de red/routing
   if (err instanceof HttpError) {
-    return sendResponse(res, err.statusCode, null, { message: err.message });
+    const msg = req.t ? req.t(err.message) : err.message;
+    return sendResponse(res, err.statusCode, null, { message: msg });
   }
   
   // 2. Errores de Dominio (lógica de negocio abstracta traducida a HTTP)
@@ -33,11 +34,14 @@ const errorHandler = (err, req, res, next) => {
     else if (err instanceof NotFoundError) statusCode = 404;
     else if (err instanceof ConflictError) statusCode = 409;
 
-    return sendResponse(res, statusCode, null, { message: err.message });
+    const msg = req.t ? req.t(err.message) : err.message;
+    return sendResponse(res, statusCode, null, { message: msg });
   }
   
   // 3. Errores inesperados o de sistema
-  return sendResponse(res, 500, null, { message: err.message || MESSAGES.COMMON.SERVER_ERROR });
+  const defaultMsg = req.t ? req.t(MESSAGES.COMMON.SERVER_ERROR) : MESSAGES.COMMON.SERVER_ERROR;
+  const msg = req.t && err.message && req.t(err.message) !== err.message ? req.t(err.message) : (err.message || defaultMsg);
+  return sendResponse(res, 500, null, { message: msg });
 };
 
 module.exports = {

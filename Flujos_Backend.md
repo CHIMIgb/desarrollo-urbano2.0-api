@@ -110,12 +110,12 @@ Cliente                   authMiddleware.js             authService.js
   │                              │               loginUser()  │
   │                              │           ┌───────────────▶│ SELECT * FROM users WHERE username=$1
   │                              │           │                │ bcrypt.compare(password, hash)
-  │                              │           │                │ jwt.sign({ id, username, full_name }, JWT_SECRET, {expiresIn:'2h'})
+  │                              │           │                │ jwt.sign({ id, username, full_name }, JWT_SECRET, {expiresIn:'1h'})
   │◀─ 200 { token, user } ───────────────────┘                │
   │
   │   (Peticiones posteriores — rutas protegidas)
   │── GET /api/projects/all ─────▶│
-  │   headers: { authorization: "eyJ..." }
+  │   headers: { authorization: "Bearer eyJ..." }
   │                              │ jwt.verify(token, JWT_SECRET)
   │                              │─── OK ──▶ req.user = { id, username, full_name }
   │                              │─── FAIL ─▶ 403 { error: 'Token invalido' }
@@ -125,9 +125,9 @@ Cliente                   authMiddleware.js             authService.js
 **Detalles del token:**
 - Algoritmo: HS256 (por defecto de `jsonwebtoken`).
 - Payload: `{ id, username, full_name, iat, exp }`.
-- TTL: 2 horas (`expiresIn: '2h'`).
+- TTL: 1 hora (`expiresIn: '1h'`).
 - Secret: variable de entorno `JWT_SECRET` (fallback inseguro `'secret'` para desarrollo local).
-- Transmisión: cabecera `Authorization` plana (sin prefijo `Bearer`).
+- Transmisión: cabecera `Authorization` con prefijo `Bearer` (ej. `Bearer eyJ...`).
 
 ### 2.2 Flujo del Manejador de Errores Global
 
@@ -194,7 +194,7 @@ No requieren autenticación previa.
 **Proceso en `authService.loginUser`:**
 1. `SELECT * FROM users WHERE username = $1` — lanza `401` si no se encuentra.
 2. `bcrypt.compare(password, user.password_hash)` — lanza `401` si no coincide (mismo mensaje genérico para no revelar qué campo es incorrecto).
-3. `jwt.sign({ id, username, full_name }, JWT_SECRET, { expiresIn: '2h' })`.
+3. `jwt.sign({ id, username, full_name }, JWT_SECRET, { expiresIn: '1h' })`.
 
 **Respuesta exitosa:** `200 { success: true, data: { token, user: { id, username, full_name, email } }, error: null }`
 
@@ -535,7 +535,7 @@ Al portar esta API a otro runtime (Django, FastAPI, Node.js avanzado), considera
 
 2. **Estrategia de features:** La lógica delete-and-reinsert puede reemplazarse por una estrategia upsert basada en `feature_data->>'id'` para mejorar el rendimiento con proyectos grandes.
 
-3. **JWT sin Bearer:** El frontend envía el token en la cabecera `Authorization` sin el prefijo `Bearer `. Un framework que espere `Bearer <token>` requerirá un ajuste en el cliente o en el middleware.
+3. **Prefijo Bearer:** El frontend envía el token en la cabecera `Authorization` con el prefijo `Bearer `. El middleware está preparado para extraerlo correctamente separando por espacio.
 
 4. **JSONB:** Si se migra a un motor no-PostgreSQL, `feature_data` y `details` requerirán una estrategia alternativa (campo `TEXT` con JSON serializado, o una tabla de atributos normalizada).
 

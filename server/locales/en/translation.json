@@ -1,0 +1,41 @@
+{
+  "auth": {
+    "missing_token": "Token not provided",
+    "empty_token": "Empty token",
+    "invalid_token": "Invalid token",
+    "expired_token": "Token has expired",
+    "revoked_token": "Session terminated (token revoked)",
+    "logout_revoked": "Token was already invalidated or has expired",
+    "bad_credentials": "Bad credentials",
+    "logout_success": "Session closed successfully",
+    "user_exists": "Username or email is already in use"
+  },
+  "projects": {
+    "not_found": "Project not found",
+    "no_access": "Project not found for this user",
+    "no_permission": "You do not have permission to modify this project or it does not exist",
+    "save_success": "Project saved successfully",
+    "audit_success": "Audit event recorded",
+    "missing_action_type": "action_type is required",
+    "invalid_features": "features must be an array",
+    "invalid_id": "Invalid ID"
+  },
+  "common": {
+    "missing_fields": "Missing required fields",
+    "server_error": "Internal server error",
+    "not_found": "Endpoint not found",
+    "unknown_error": "An error occurred",
+    "hello": "Hello World - Backend API"
+  },
+  "config": {
+    "fetch_success": "Configuration loaded successfully"
+  },
+  "security": {
+    "ip_blocked": "Your IP ({{ip}}) has been temporarily blocked due to excessive requests.",
+    "ip_blocked_details": "The block expires in {{seconds}} seconds.",
+    "ddos_blocked": "Your IP has been blocked due to suspicious behavior (possible DDoS attack).",
+    "ddos_blocked_details": "More than {{max}} requests were detected in less than 1 minute.",
+    "rate_limit": "You have exceeded the allowed request limit.",
+    "rate_limit_details": "Maximum {{max}} requests per hour. Try again later."
+  }
+}

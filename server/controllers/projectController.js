@@ -10,7 +10,7 @@ const save = async (req, res, next) => {
       throw new HttpError(400, MESSAGES.PROJECTS.INVALID_FEATURES);
     }
     const result = await projectService.saveProject(req.user.id, req.body);
-    sendResponse(res, 200, { message: MESSAGES.PROJECTS.SAVE_SUCCESS, ...result });
+    sendResponse(res, 200, { message: req.t(MESSAGES.PROJECTS.SAVE_SUCCESS), ...result });
   } catch (err) {
     next(err);
   }
@@ -50,7 +50,7 @@ const audit = async (req, res, next) => {
     const { action_type, details, projectId } = req.body;
     if (!action_type) throw new HttpError(400, MESSAGES.PROJECTS.MISSING_ACTION_TYPE);
     await projectService.addAuditLog(req.user.id, projectId, action_type, details);
-    sendResponse(res, 200, { message: MESSAGES.PROJECTS.AUDIT_SUCCESS });
+    sendResponse(res, 200, { message: req.t(MESSAGES.PROJECTS.AUDIT_SUCCESS) });
   } catch (err) {
     next(err);
   }

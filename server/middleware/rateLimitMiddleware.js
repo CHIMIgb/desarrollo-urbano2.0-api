@@ -1,6 +1,7 @@
 const rateLimit = require('express-rate-limit');
 const securityService = require('../services/securityService');
 const { sendResponse } = require('../utils/responseHandler');
+const { MESSAGES } = require('../utils/constants');
 
 // ============================================================
 // Cache local para evitar consultas a la BD en cada request.
@@ -60,8 +61,8 @@ const ipBlockerMiddleware = (req, res, next) => {
 
     const remainingSeconds = Math.ceil((blocked.expiresAt - Date.now()) / 1000);
     return sendResponse(res, 403, null, {
-      message: `Tu IP (${ip}) ha sido bloqueada temporalmente por exceso de solicitudes.`,
-      details: `El bloqueo expira en ${remainingSeconds} segundos.`
+      message: req.t(MESSAGES.SECURITY.IP_BLOCKED, { ip }),
+      details: req.t(MESSAGES.SECURITY.IP_BLOCKED_DETAILS, { seconds: remainingSeconds })
     });
   }
 
@@ -87,8 +88,8 @@ const ddosLimiter = rateLimit({
     await blockIp(ip, `Superó ${maxPerMinute} solicitudes en 1 minuto (posible DDoS)`, maxPerMinute);
 
     return sendResponse(res, 403, null, {
-      message: `Tu IP ha sido bloqueada por comportamiento sospechoso (posible ataque DDoS).`,
-      details: `Se detectaron más de ${maxPerMinute} solicitudes en menos de 1 minuto.`
+      message: req.t(MESSAGES.SECURITY.DDOS_BLOCKED),
+      details: req.t(MESSAGES.SECURITY.DDOS_BLOCKED_DETAILS, { max: maxPerMinute })
     });
   },
   // No aplicar rate limit a IPs ya bloqueadas (ipBlockerMiddleware se encarga)
@@ -108,8 +109,8 @@ const globalLimiter = rateLimit({
   handler: (req, res) => {
     const maxPerHour = parseInt(process.env.RATE_LIMIT_MAX_PER_HOUR) || 1000;
     return sendResponse(res, 429, null, {
-      message: 'Has excedido el límite de solicitudes permitidas.',
-      details: `Máximo ${maxPerHour} solicitudes por hora. Intenta de nuevo más tarde.`
+      message: req.t(MESSAGES.SECURITY.RATE_LIMIT),
+      details: req.t(MESSAGES.SECURITY.RATE_LIMIT_DETAILS, { max: maxPerHour })
     });
   }
 });

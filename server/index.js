@@ -8,6 +8,8 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 const { ipBlockerMiddleware, ddosLimiter, globalLimiter, initRateLimiter } = require('./middleware/rateLimitMiddleware');
 const { sendResponse } = require('./utils/responseHandler');
 const { MESSAGES } = require('./utils/constants');
+const i18next = require('./config/i18n');
+const middleware = require('i18next-http-middleware');
 
 const app = express();
 const port = process.env.PORT;
@@ -19,6 +21,7 @@ if (!apiPrefix.startsWith('/')) {
 app.use(cors());
 app.use(express.json({ limit: process.env.MAX_PAYLOAD_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: process.env.MAX_PAYLOAD_SIZE }));
+app.use(middleware.handle(i18next));
 
 // Rate Limit y Protección DDoS (orden importante)
 // 1. Verificar si la IP está bloqueada (más rápido, rechaza de inmediato)
@@ -29,7 +32,7 @@ app.use(ddosLimiter);
 app.use(globalLimiter);
 
 app.get(`${apiPrefix}/`, (req, res) => {
-  sendResponse(res, 200, { message: 'Hola Mundo - Backend API' });
+  sendResponse(res, 200, { message: req.t(MESSAGES.COMMON.HELLO) });
 });
 
 app.use(`${apiPrefix}/auth`, authRoutes);
@@ -38,7 +41,7 @@ app.use(`${apiPrefix}/config`, configRoutes);
 
 // Manejo de rutas no encontradas (404)
 app.use(apiPrefix, (req, res) => {
-  sendResponse(res, 404, null, { message: MESSAGES.COMMON.NOT_FOUND });
+  sendResponse(res, 404, null, { message: req.t(MESSAGES.COMMON.NOT_FOUND) });
 });
 
 // Manejador de errores global

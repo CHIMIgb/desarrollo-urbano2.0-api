@@ -26,6 +26,9 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "i18next": "^26.3.0",
+    "i18next-fs-backend": "^2.6.6",
+    "i18next-http-middleware": "^3.9.7",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.21.0"
   },

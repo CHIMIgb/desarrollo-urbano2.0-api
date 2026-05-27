@@ -1,31 +1,42 @@
 const MESSAGES = {
   AUTH: {
-    MISSING_TOKEN: 'Token no proporcionado',
-    EMPTY_TOKEN: 'Token vacio',
-    INVALID_TOKEN: 'Token invalido',
-    EXPIRED_TOKEN: 'El token ha expirado',
-    REVOKED_TOKEN: 'Sesión terminada (token revocado)',
-    LOGOUT_REVOKED: 'El token ya estaba invalidado o ha expirado',
-    BAD_CREDENTIALS: 'Credenciales incorrectas',
-    LOGOUT_SUCCESS: 'Sesión cerrada correctamente',
-    USER_EXISTS: 'El nombre de usuario o email ya esta en uso'
+    MISSING_TOKEN: 'auth.missing_token',
+    EMPTY_TOKEN: 'auth.empty_token',
+    INVALID_TOKEN: 'auth.invalid_token',
+    EXPIRED_TOKEN: 'auth.expired_token',
+    REVOKED_TOKEN: 'auth.revoked_token',
+    LOGOUT_REVOKED: 'auth.logout_revoked',
+    BAD_CREDENTIALS: 'auth.bad_credentials',
+    LOGOUT_SUCCESS: 'auth.logout_success',
+    USER_EXISTS: 'auth.user_exists'
   },
   PROJECTS: {
-    NOT_FOUND: 'Proyecto no encontrado',
-    NO_ACCESS: 'Proyecto no encontrado para este usuario',
-    SAVE_SUCCESS: 'Proyecto guardado con exito',
-    AUDIT_SUCCESS: 'Evento de auditoria registrado',
-    MISSING_ACTION_TYPE: 'action_type es obligatorio',
-    INVALID_FEATURES: 'features debe ser un array',
-    INVALID_ID: 'ID invalido'
+    NOT_FOUND: 'projects.not_found',
+    NO_ACCESS: 'projects.no_access',
+    NO_PERMISSION: 'projects.no_permission',
+    SAVE_SUCCESS: 'projects.save_success',
+    AUDIT_SUCCESS: 'projects.audit_success',
+    MISSING_ACTION_TYPE: 'projects.missing_action_type',
+    INVALID_FEATURES: 'projects.invalid_features',
+    INVALID_ID: 'projects.invalid_id'
   },
   COMMON: {
-    MISSING_FIELDS: 'Faltan campos obligatorios',
-    SERVER_ERROR: 'Error interno',
-    NOT_FOUND: 'Endpoint no encontrado'
+    MISSING_FIELDS: 'common.missing_fields',
+    SERVER_ERROR: 'common.server_error',
+    NOT_FOUND: 'common.not_found',
+    UNKNOWN_ERROR: 'common.unknown_error',
+    HELLO: 'common.hello'
   },
   CONFIG: {
-    FETCH_SUCCESS: 'Configuración cargada con éxito'
+    FETCH_SUCCESS: 'config.fetch_success'
+  },
+  SECURITY: {
+    IP_BLOCKED: 'security.ip_blocked',
+    IP_BLOCKED_DETAILS: 'security.ip_blocked_details',
+    DDOS_BLOCKED: 'security.ddos_blocked',
+    DDOS_BLOCKED_DETAILS: 'security.ddos_blocked_details',
+    RATE_LIMIT: 'security.rate_limit',
+    RATE_LIMIT_DETAILS: 'security.rate_limit_details'
   }
 };
 

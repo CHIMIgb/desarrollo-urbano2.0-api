@@ -24,7 +24,7 @@ const sendResponse = (res, statusCode, data = null, errorDetails = null) => {
     response.data = null;
     response.error = {
       code: httpDictionary[statusCode] || 'Unknown Error',
-      message: errorDetails?.message || 'Ha ocurrido un error',
+      message: errorDetails?.message || 'common.unknown_error',
       details: errorDetails?.details || null
     };
   }

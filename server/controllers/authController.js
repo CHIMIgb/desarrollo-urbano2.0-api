@@ -75,7 +75,7 @@ const logout = async (req, res, next) => {
       throw new HttpError(400, MESSAGES.AUTH.LOGOUT_REVOKED);
     }
 
-    sendResponse(res, 200, { message: MESSAGES.AUTH.LOGOUT_SUCCESS });
+    sendResponse(res, 200, { message: req.t ? req.t(MESSAGES.AUTH.LOGOUT_SUCCESS) : MESSAGES.AUTH.LOGOUT_SUCCESS });
   } catch (err) {
     next(err);
   }

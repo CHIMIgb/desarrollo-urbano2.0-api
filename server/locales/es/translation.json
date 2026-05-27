@@ -1,0 +1,41 @@
+{
+  "auth": {
+    "missing_token": "Token no proporcionado",
+    "empty_token": "Token vacío",
+    "invalid_token": "Token inválido",
+    "expired_token": "El token ha expirado",
+    "revoked_token": "Sesión terminada (token revocado)",
+    "logout_revoked": "El token ya estaba invalidado o ha expirado",
+    "bad_credentials": "Credenciales incorrectas",
+    "logout_success": "Sesión cerrada correctamente",
+    "user_exists": "El nombre de usuario o email ya está en uso"
+  },
+  "projects": {
+    "not_found": "Proyecto no encontrado",
+    "no_access": "Proyecto no encontrado para este usuario",
+    "no_permission": "No tienes permiso para modificar este proyecto o no existe",
+    "save_success": "Proyecto guardado con éxito",
+    "audit_success": "Evento de auditoría registrado",
+    "missing_action_type": "action_type es obligatorio",
+    "invalid_features": "features debe ser un array",
+    "invalid_id": "ID inválido"
+  },
+  "common": {
+    "missing_fields": "Faltan campos obligatorios",
+    "server_error": "Error interno",
+    "not_found": "Endpoint no encontrado",
+    "unknown_error": "Ha ocurrido un error",
+    "hello": "Hola Mundo - Backend API"
+  },
+  "config": {
+    "fetch_success": "Configuración cargada con éxito"
+  },
+  "security": {
+    "ip_blocked": "Tu IP ({{ip}}) ha sido bloqueada temporalmente por exceso de solicitudes.",
+    "ip_blocked_details": "El bloqueo expira en {{seconds}} segundos.",
+    "ddos_blocked": "Tu IP ha sido bloqueada por comportamiento sospechoso (posible ataque DDoS).",
+    "ddos_blocked_details": "Se detectaron más de {{max}} solicitudes en menos de 1 minuto.",
+    "rate_limit": "Has excedido el límite de solicitudes permitidas.",
+    "rate_limit_details": "Máximo {{max}} solicitudes por hora. Intenta de nuevo más tarde."
+  }
+}

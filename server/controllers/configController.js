@@ -5,7 +5,7 @@ const { MESSAGES } = require('../utils/constants');
 const getConfig = async (req, res, next) => {
   try {
     const config = await configService.getConfig();
-    sendResponse(res, 200, { message: MESSAGES.CONFIG.FETCH_SUCCESS, ...config });
+    sendResponse(res, 200, { message: req.t(MESSAGES.CONFIG.FETCH_SUCCESS), ...config });
   } catch (err) {
     next(err);
   }
