@@ -66,6 +66,11 @@ const loginUser = async (username, password) => {
 };
 
 const verifyToken = async (token) => {
+  const isRevoked = await isTokenInvalidated(token);
+  if (isRevoked) {
+    throw new AuthenticationError(MESSAGES.AUTH.REVOKED_TOKEN);
+  }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return decoded;
@@ -104,16 +109,10 @@ const isTokenInvalidated = async (token) => {
 const REFRESH_THRESHOLD_SECONDS = 10 * 60;
 
 const refreshToken = async (token) => {
-  // 1. Verificar que el token sea válido (firma y expiración)
+  // 1. Verificar que el token sea válido (firma, expiración y lista negra)
   const decoded = await verifyToken(token);
 
-  // 2. Verificar que no esté en la lista negra
-  const isRevoked = await isTokenInvalidated(token);
-  if (isRevoked) {
-    throw new AuthenticationError(MESSAGES.AUTH.REVOKED_TOKEN);
-  }
-
-  // 3. Calcular tiempo restante
+  // 2. Calcular tiempo restante
   const now = Math.floor(Date.now() / 1000);
   const remainingSeconds = decoded.exp - now;
 
