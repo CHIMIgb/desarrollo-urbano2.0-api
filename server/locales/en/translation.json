@@ -8,7 +8,9 @@
     "logout_revoked": "Token was already invalidated or has expired",
     "bad_credentials": "Bad credentials",
     "logout_success": "Session closed successfully",
-    "user_exists": "Username or email is already in use"
+    "user_exists": "Username or email is already in use",
+    "refresh_success": "Token refreshed successfully",
+    "refresh_not_needed": "Token still has more than 10 minutes remaining, no refresh needed"
   },
   "projects": {
     "not_found": "Project not found",

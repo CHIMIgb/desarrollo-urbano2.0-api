@@ -82,6 +82,7 @@ Para entender cómo viajan los datos en esta API, imagina el siguiente recorrido
 - `POST /login`: Inicia sesión y obtiene un JWT.
 - `GET /validate`: Verifica la validez del token actual.
 - `POST /logout`: Invalida la sesión actual añadiendo el JWT a una lista negra.
+- `POST /refresh`: Renueva el JWT si le quedan 10 minutos o menos de vida. El token viejo se invalida automáticamente.
 
 ### Proyectos (`/api/projects` - Requieren Autenticación)
 - `POST /save`: Guarda o actualiza el estado completo de un proyecto urbano en la BD (features 3D, cámara, métricas) mediante una transacción SQL.
@@ -90,7 +91,7 @@ Para entender cómo viajan los datos en esta API, imagina el siguiente recorrido
 - `GET /:id`: Carga un proyecto en específico.
 - `POST /audit`: Registra eventos de auditoría (ej. importaciones de OSM).
 
-### Configuración pública (`/api/config`)
+### Configuración (`/api/config` - Requiere Autenticación)
 - `GET /`: Expone variables de entorno no sensibles necesarias para el frontend (servicios de mapas de OpenStreetMap).
 
 ## 📄 Documentación Extendida

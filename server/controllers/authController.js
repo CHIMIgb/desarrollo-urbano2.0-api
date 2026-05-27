@@ -81,4 +81,26 @@ const logout = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, validate, logout };
+const refresh = async (req, res, next) => {
+  try {
+    let token = req.headers['authorization'];
+    if (!token) {
+      throw new HttpError(401, MESSAGES.AUTH.MISSING_TOKEN);
+    }
+
+    if (token.startsWith('Bearer ')) {
+      token = token.split(' ')[1];
+    }
+
+    if (!token) {
+      throw new HttpError(400, MESSAGES.AUTH.EMPTY_TOKEN);
+    }
+
+    const result = await authService.refreshToken(token);
+    sendResponse(res, 200, { message: req.t ? req.t(MESSAGES.AUTH.REFRESH_SUCCESS) : MESSAGES.AUTH.REFRESH_SUCCESS, ...result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, validate, logout, refresh };

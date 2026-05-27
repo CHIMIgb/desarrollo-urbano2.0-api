@@ -210,6 +210,52 @@ No requieren autenticación previa.
 
 ---
 
+#### `POST /api/auth/logout`
+**Descripción:** Cierra la sesión del usuario invalidando su token actual. El token se añade a la tabla `invalidated_tokens` para que sea rechazado en futuras peticiones.
+
+**Proceso en `authService.invalidateToken` (transacción):**
+1. `INSERT INTO invalidated_tokens (token) VALUES ($1) ON CONFLICT DO NOTHING` — dentro de `BEGIN/COMMIT`.
+2. Si `rowCount > 0`, el token fue invalidado exitosamente. Si `rowCount === 0`, ya estaba invalidado — lanza `400`.
+
+**Respuesta exitosa:** `200 { success: true, data: { message: 'Sesión cerrada correctamente' }, error: null }`
+
+---
+
+#### `POST /api/auth/refresh`
+**Descripción:** Renueva un token JWT que está próximo a expirar. El frontend debe llamar a este endpoint cuando detecte que el token tiene 10 minutos o menos de vida restante. El token viejo se invalida automáticamente (se envía a la lista negra).
+
+**Proceso en `authService.refreshToken`:**
+1. `jwt.verify(token, JWT_SECRET)` — lanza `401` si el token es inválido o ha expirado.
+2. Consulta `invalidated_tokens` — lanza `401` si el token ya fue revocado.
+3. Calcula el tiempo restante (`exp - now`). Si es mayor a 600 segundos (10 minutos), lanza `400` indicando que aún no es necesario renovar.
+4. `jwt.sign({ id, username, full_name }, JWT_SECRET, { expiresIn })` — genera un nuevo token con 1 hora de vida.
+5. `INSERT INTO invalidated_tokens (token) VALUES ($1)` — invalida el token viejo dentro de una transacción `BEGIN/COMMIT/ROLLBACK`.
+
+```
+Cliente                                authService.js
+  │                                          │
+  │── POST /api/auth/refresh ───────────────▶│
+  │   headers: { Authorization: "Bearer eyJ...viejo" }
+  │                                          │ jwt.verify(token)
+  │                                          │ SELECT FROM invalidated_tokens (blacklist)
+  │                                          │ ¿tiempoRestante <= 600s?
+  │                                          │   Sí ──▶ jwt.sign() → nuevo token
+  │                                          │          INSERT viejo en blacklist
+  │                                          │   No ──▶ 400 "No es necesario renovarlo"
+  │◀─ 200 { token: "eyJ...nuevo", user } ────┤
+```
+
+**Respuesta exitosa:** `200 { success: true, data: { message: 'Token renovado con éxito', token, user: { id, username, full_name } }, error: null }`
+
+**Errores posibles:**
+
+| Código | Causa |
+|--------|-------|
+| `400`  | El token aún tiene más de 10 minutos de vida (`ValidationError`) |
+| `401`  | Token inválido, expirado o revocado (`AuthenticationError`) |
+
+---
+
 ### 3.2 Módulo de Proyectos — `/api/projects`
 
 **Todas las rutas requieren `authMiddleware`** (token JWT válido en cabecera `Authorization`). El `userId` es siempre extraído de `req.user.id` — jamás del body — garantizando el aislamiento de sesiones.
@@ -336,10 +382,9 @@ VALUES ($1, $2, $3, $4::jsonb);
 
 ---
 
-### 3.3 Endpoint de Configuración Pública — `/api/config`
+### 3.3 Endpoint de Configuración — `/api/config`
 
-#### `GET /api/config`
-**Descripción:** Expone las variables de configuración de OSM de forma segura al frontend, sin requerir autenticación. Permite que el cliente consuma tiles, geocodificación y Overpass desde los endpoints configurados en el servidor, evitando hardcodearlos en el código del cliente.
+**Requiere autenticación** (token JWT válido en cabecera `Authorization`).
 
 **Variables expuestas:**
 - `OSM_TILE_URL`: URL de tiles del mapa base.

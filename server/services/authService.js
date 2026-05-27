@@ -1,7 +1,7 @@
 const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { ConflictError, AuthenticationError } = require('../utils/errors');
+const { ConflictError, AuthenticationError, ValidationError } = require('../utils/errors');
 const { MESSAGES } = require('../utils/constants');
 
 const generateToken = (user) => {
@@ -100,4 +100,54 @@ const isTokenInvalidated = async (token) => {
   return result.rows.length > 0;
 };
 
-module.exports = { registerUser, loginUser, verifyToken, invalidateToken, isTokenInvalidated };
+// Umbral de renovación: 10 minutos en segundos
+const REFRESH_THRESHOLD_SECONDS = 10 * 60;
+
+const refreshToken = async (token) => {
+  // 1. Verificar que el token sea válido (firma y expiración)
+  const decoded = await verifyToken(token);
+
+  // 2. Verificar que no esté en la lista negra
+  const isRevoked = await isTokenInvalidated(token);
+  if (isRevoked) {
+    throw new AuthenticationError(MESSAGES.AUTH.REVOKED_TOKEN);
+  }
+
+  // 3. Calcular tiempo restante
+  const now = Math.floor(Date.now() / 1000);
+  const remainingSeconds = decoded.exp - now;
+
+  if (remainingSeconds > REFRESH_THRESHOLD_SECONDS) {
+    throw new ValidationError(MESSAGES.AUTH.REFRESH_NOT_NEEDED);
+  }
+
+  // 4. Generar nuevo token con los datos del usuario
+  const newToken = generateToken({
+    id: decoded.id,
+    username: decoded.username,
+    full_name: decoded.full_name
+  });
+
+  // 5. Invalidar el token viejo en una transacción
+  const client = await db.getClient();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      'INSERT INTO invalidated_tokens (token) VALUES ($1) ON CONFLICT (token) DO NOTHING',
+      [token]
+    );
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  return {
+    token: newToken,
+    user: { id: decoded.id, username: decoded.username, full_name: decoded.full_name }
+  };
+};
+
+module.exports = { registerUser, loginUser, verifyToken, invalidateToken, isTokenInvalidated, refreshToken };

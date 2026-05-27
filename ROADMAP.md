@@ -1,40 +1,26 @@
-# 🚀 Roadmap: Siguientes Niveles (Enterprise Grade)
+# 🚀 Roadmap y Deuda Técnica (API)
 
-Este documento detalla las implementaciones planeadas a futuro para llevar la API de un estado "Excelente" a un estándar de producción de grado empresarial (Senior Level). Estas mejoras no son estrictamente necesarias para el funcionamiento base, pero son vitales para la mantenibilidad, escalabilidad y confiabilidad del proyecto a gran escala.
+Este documento contiene sugerencias arquitectónicas y mejoras técnicas identificadas durante el desarrollo inicial. Estas tareas no son bloqueantes para el MVP, pero son altamente recomendadas para escalar la aplicación a nivel Enterprise.
 
----
+## 1. Validaciones Robustas (Schema Validation)
+Actualmente los controladores realizan validaciones manuales (ej. `if (!username || !password) throw Error`). Esto funciona para flujos básicos, pero a medida que la app crezca (ej. validar que un polígono de MapLibre tenga coordenadas válidas de GeoJSON), estos `if` serán inmanejables.
 
-## 1. Validación de Esquemas (Schema Validation)
-Actualmente, los datos de las peticiones (`req.body`) se validan manualmente en la capa de controladores (ej. `if (!username || !password) throw Error...`).
+**Plan de Acción:**
+- Integrar una librería de validación de esquemas como **Zod** o **Joi**.
+- Crear un middleware a nivel de Rutas (`routes/`) para interceptar peticiones malformadas. De esta forma, las peticiones inválidas nunca llegarán al controlador.
 
-**Implementación a futuro:** 
-Integrar una librería de validación estricta como **Zod**, **Joi** o **express-validator**. 
-- **Objetivo:** Definir esquemas declarativos (ej. "el password debe tener al menos 8 letras, un número y un símbolo") y utilizar un middleware que valide automáticamente el "Payload" antes de que siquiera llegue al controlador. Esto limpia el código y asegura que solo datos matemáticamente correctos toquen la lógica de negocio.
+## 2. Migración a TypeScript
+El Frontend está construido en TypeScript fuertemente tipado, mientras que el Backend utiliza CommonJS (`require` de Node.js). 
 
-## 2. Observabilidad (Logging Estructurado)
-Actualmente, el manejo de logs y errores se realiza mediante `console.error()`.
+**Plan de Acción:**
+- Inicializar `tsc` en el backend.
+- Migrar gradualmente los archivos `.js` a `.ts`.
+- **Beneficio Principal:** Prevención de errores en tiempo de ejecución ("Cannot read properties of undefined"), mejor autocompletado en el editor y la posibilidad de compartir las interfaces/tipos (ej. los atributos de los polígonos) directamente con el Frontend para asegurar consistencia total.
 
-**Implementación a futuro:**
-Sustituir la consola estándar por librerías profesionales de logging como **Winston** o **Pino**.
-- **Objetivo:** Guardar los registros y errores en archivos de texto o flujos estándar en formato `JSON`, incluyendo marcas de tiempo exactas (timestamps), niveles de severidad (`info`, `warn`, `error`) y un contexto detallado (Stack Trace estructurado). Esto permitirá que herramientas de monitoreo como Datadog, AWS CloudWatch o el stack ELK lean y alerten al equipo si ocurre un fallo en producción.
+## 3. Pruebas Automatizadas (Unit Testing)
+Actualmente no existe una infraestructura de pruebas automatizadas en la API.
 
-## 3. Tests Automatizados (Testing)
-Actualmente, la validación del comportamiento de la API es manual. Un proyecto de grado empresarial no está completo sin una suite de pruebas.
-
-**Implementación a futuro:**
-Implementar pruebas unitarias y de integración utilizando **Jest** y **Supertest**.
-- **Objetivo:** Crear scripts que simulen peticiones HTTP contra la API de forma automatizada (ej. `it('debería retornar 401 si el token es inválido')`). Esto garantiza que los nuevos cambios o refactorizaciones no rompan funcionalidades existentes (Regression Testing).
-
-## 4. Integración y Despliegue Continuo (CI/CD)
-En la actualidad los despliegues y pruebas dependen de la disciplina del desarrollador.
-
-**Implementación a futuro:**
-Configurar flujos de trabajo (workflows) automatizados usando **GitHub Actions**, **GitLab CI** o **Jenkins**.
-- **Objetivo:** Cada vez que se haga un `git commit` o se abra un Pull Request (PR), los servidores de CI/CD deben levantar temporalmente una base de datos PostgreSQL, instalar dependencias y ejecutar toda la suite de tests automatizados (los creados en el punto 3). Si un solo test falla, el PR se bloquea automáticamente y no se puede fusionar con la rama principal (main), garantizando que nunca llegue código roto a producción.
-
-## 5. Validación de Entorno (Fail Fast)
-Actualmente, la API asume que las variables de entorno críticas existen y son correctas.
-
-**Implementación a futuro:**
-Añadir una capa de validación en la fase de arranque (`server/index.js`) que revise el archivo `.env`.
-- **Objetivo:** Si falta una variable crítica como `process.env.JWT_SECRET` o `DATABASE_URL`, el servidor debe abortar su inicio de inmediato (`process.exit(1)`) lanzando un error claro y descriptivo. Es preferible que la aplicación "falle rápido" al intentar desplegarse, en lugar de arrancar silenciosamente y generar errores asíncronos horas después cuando un usuario intente iniciar sesión.
+**Plan de Acción:**
+- Instalar **Vitest** o **Jest**.
+- Configurar pruebas unitarias enfocadas primeramente en el directorio `services/`, donde reside la lógica de negocio real.
+- **Caso Crítico:** Para un software de diseño urbano, las funciones matemáticas que calculen áreas (CUS, COS, metrajes de espacios públicos) deben tener pruebas estrictas. Entregar cálculos erróneos a ingenieros, arquitectos o clientes puede tener consecuencias legales o de costos severas.

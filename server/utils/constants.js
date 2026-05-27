@@ -8,7 +8,9 @@ const MESSAGES = {
     LOGOUT_REVOKED: 'auth.logout_revoked',
     BAD_CREDENTIALS: 'auth.bad_credentials',
     LOGOUT_SUCCESS: 'auth.logout_success',
-    USER_EXISTS: 'auth.user_exists'
+    USER_EXISTS: 'auth.user_exists',
+    REFRESH_SUCCESS: 'auth.refresh_success',
+    REFRESH_NOT_NEEDED: 'auth.refresh_not_needed'
   },
   PROJECTS: {
     NOT_FOUND: 'projects.not_found',
