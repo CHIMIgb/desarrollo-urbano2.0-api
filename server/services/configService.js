@@ -3,7 +3,8 @@ const getConfig = async () => {
     OSM_TILE_URL: process.env.OSM_TILE_URL,
     OSM_NOMINATIM_URL: process.env.OSM_NOMINATIM_URL,
     OSM_OVERPASS_ENDPOINTS: process.env.OSM_OVERPASS_ENDPOINTS ? process.env.OSM_OVERPASS_ENDPOINTS.split(',') : [],
-    SATELLITE_TILE_URL: process.env.SATELLITE_TILE_URL
+    SATELLITE_TILE_URL: process.env.SATELLITE_TILE_URL,
+    TERRAIN_TILE_URL: process.env.TERRAIN_TILE_URL
   };
 };
 
